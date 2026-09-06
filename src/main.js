@@ -35,6 +35,7 @@ const mapWrap = el("mapWrap");
 const mapCountries = el("mapCountries");
 const mapPins = el("mapPins");
 const mapViewport = el("mapViewport");
+const pinsViewport = el("pinsViewport");
 const worldMap = el("worldMap");
 const zoomInBtn = el("zoomInBtn");
 const zoomOutBtn = el("zoomOutBtn");
@@ -73,11 +74,15 @@ const MIN_SCALE = 1;
 const MAX_SCALE = 10;
 
 function setViewportTransition(ms) {
-  mapViewport.style.transition = ms > 0 ? `transform ${ms}ms cubic-bezier(.4,0,.2,1)` : "none";
+  const t = ms > 0 ? `transform ${ms}ms cubic-bezier(.4,0,.2,1)` : "none";
+  mapViewport.style.transition = t;
+  pinsViewport.style.transition = t;
 }
 
 function applyView() {
   mapViewport.setAttribute("transform", `translate(${view.tx},${view.ty}) scale(${view.scale})`);
+  pinsViewport.setAttribute("transform", `translate(${view.tx},${view.ty})`);
+  renderPin();
 }
 
 function currentCenter() {
@@ -155,15 +160,27 @@ function endDrag() {
 mapWrap.addEventListener("pointerup", endDrag);
 mapWrap.addEventListener("pointerleave", endDrag);
 
-// ===================== MAP: status pin (moves + changes color) =====================
+// ===================== MAP: status pin (moves + changes color, fixed on-screen size) =====================
 const statusPin = svgEl("g", { id: "statusPin", class: "status-pin" });
 statusPin.appendChild(svgEl("circle", { class: "pulse-ring", r: 5, fill: "none", "stroke-width": 2 }));
 statusPin.appendChild(svgEl("circle", { class: "loading-ring", r: 11 }));
 statusPin.appendChild(svgEl("circle", { class: "core dot", r: 5 }));
 mapPins.appendChild(statusPin);
 
+// pinWorldPos holds the pin's position in *unscaled* map/world coordinates
+// (same space as project()). The pin lives in #pinsViewport, which only ever
+// translates (never scales), so we multiply by the current zoom level
+// ourselves — this keeps the pin's visual size constant no matter how far
+// the user has zoomed in/out, instead of ballooning with the map.
+let pinWorldPos = { x: 0, y: 0 };
+
+function renderPin() {
+  statusPin.setAttribute("transform", `translate(${pinWorldPos.x * view.scale},${pinWorldPos.y * view.scale})`);
+}
+
 function setPinTransform(x, y) {
-  statusPin.setAttribute("transform", `translate(${x},${y})`);
+  pinWorldPos = { x, y };
+  renderPin();
 }
 
 function setPinState(mode) {
@@ -193,36 +210,20 @@ function animatePin(from, to, durationMs, onDone) {
   requestAnimationFrame(frame);
 }
 
-// ===================== GEOLOCATION (IP) =====================
+// ===================== GEOLOCATION (via Rust backend) =====================
 async function fetchMyLocation() {
   try {
-    const res = await fetch("https://ipapi.co/json/");
-    const data = await res.json();
-    if (data && data.latitude) {
-      myLocation = {
-        city: data.city || "Unknown",
-        country: data.country_name || "",
-        lat: data.latitude,
-        lng: data.longitude,
-        ip: data.ip || "—",
-      };
-    }
+    const loc = await invoke("get_my_location");
+    myLocation = {
+      city: loc.city || "Unknown",
+      country: loc.country || "",
+      lat: loc.lat,
+      lng: loc.lng,
+      ip: loc.ip || "—",
+    };
   } catch (e) {
-    try {
-      const res2 = await fetch("https://ipwho.is/");
-      const data2 = await res2.json();
-      if (data2 && data2.success !== false) {
-        myLocation = {
-          city: data2.city || "Unknown",
-          country: data2.country || "",
-          lat: data2.latitude,
-          lng: data2.longitude,
-          ip: data2.ip || "—",
-        };
-      }
-    } catch (e2) {
-      // keep default fallback
-    }
+    console.error("get_my_location failed:", e);
+    // keep the built-in fallback coordinates already set in myLocation
   }
 
   myLocationText.textContent = `${myLocation.city}, ${myLocation.country}`;

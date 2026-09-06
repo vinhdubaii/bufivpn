@@ -132,6 +132,7 @@ html, body {
   stroke-width: 2;
   stroke-linecap: round;
   stroke-dasharray: 8 6;
+  transform-box: fill-box;
   transform-origin: center;
   animation: spin 0.9s linear infinite;
   opacity: 0;

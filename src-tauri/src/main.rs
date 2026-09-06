@@ -114,6 +114,65 @@ fn reset_dns() -> Result<(), String> {
     Ok(())
 }
 
+#[derive(serde::Serialize)]
+struct LocationInfo {
+    city: String,
+    country: String,
+    lat: f64,
+    lng: f64,
+    ip: String,
+}
+
+/// Detect the user's approximate location via public IP-geolocation APIs.
+/// Done on the Rust side (not from the webview) so it isn't affected by the
+/// app's Content-Security-Policy / webview CORS restrictions.
+#[tauri::command]
+async fn get_my_location() -> Result<LocationInfo, String> {
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(6))
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    // Primary provider: ipapi.co
+    if let Ok(resp) = client.get("https://ipapi.co/json/").send().await {
+        if let Ok(json) = resp.json::<serde_json::Value>().await {
+            if let (Some(lat), Some(lng)) = (
+                json.get("latitude").and_then(|v| v.as_f64()),
+                json.get("longitude").and_then(|v| v.as_f64()),
+            ) {
+                return Ok(LocationInfo {
+                    city: json.get("city").and_then(|v| v.as_str()).unwrap_or("Unknown").to_string(),
+                    country: json.get("country_name").and_then(|v| v.as_str()).unwrap_or("").to_string(),
+                    lat,
+                    lng,
+                    ip: json.get("ip").and_then(|v| v.as_str()).unwrap_or("—").to_string(),
+                });
+            }
+        }
+    }
+
+    // Fallback provider: ipwho.is
+    let resp = client
+        .get("https://ipwho.is/")
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+    let json: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
+
+    let success = json.get("success").and_then(|v| v.as_bool()).unwrap_or(true);
+    if !success {
+        return Err("Could not detect location from either provider".to_string());
+    }
+
+    Ok(LocationInfo {
+        city: json.get("city").and_then(|v| v.as_str()).unwrap_or("Unknown").to_string(),
+        country: json.get("country").and_then(|v| v.as_str()).unwrap_or("").to_string(),
+        lat: json.get("latitude").and_then(|v| v.as_f64()).unwrap_or(21.0285),
+        lng: json.get("longitude").and_then(|v| v.as_f64()).unwrap_or(105.8542),
+        ip: json.get("ip").and_then(|v| v.as_str()).unwrap_or("—").to_string(),
+    })
+}
+
 fn show_main_window(app: &tauri::AppHandle) {
     if let Some(win) = app.get_window("main") {
         let _ = win.show();
@@ -163,7 +222,7 @@ fn main() {
     let tray = SystemTray::new().with_menu(tray_menu);
 
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![list_adapters, set_dns, reset_dns])
+        .invoke_handler(tauri::generate_handler![list_adapters, set_dns, reset_dns, get_my_location])
         .system_tray(tray)
         .on_system_tray_event(|app, event| match event {
             SystemTrayEvent::LeftClick { position, .. } => {
