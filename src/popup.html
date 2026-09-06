@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>BUFI VPN</title>
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="popup.css" />
+</head>
+<body class="popup-body">
+
+  <div class="popup">
+    <header class="popup-header" data-tauri-drag-region>
+      <div class="brand">
+        <img class="brand-logo" src="assets/logo.png" alt="BUFI" onerror="this.style.display='none'" />
+        <span class="brand-name">BUFI VPN</span>
+      </div>
+      <button class="popup-close" id="popupCloseBtn" title="Close">✕</button>
+    </header>
+
+    <div class="popup-status-row">
+      <div class="status-pill" id="statusPill">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">NOT CONNECTED</span>
+      </div>
+    </div>
+
+    <button class="popup-server-row" id="popupServerRow">
+      <span class="flag" id="selectedFlag">🌍</span>
+      <div class="popup-server-info">
+        <span class="popup-server-label" id="popupServerLabel">Select server</span>
+        <span class="popup-server-name" id="selectedServerText">Choose a location</span>
+      </div>
+      <span class="chevron">▾</span>
+    </button>
+
+    <div class="popup-stats hidden" id="popupStats">
+      <div class="stats-grid">
+        <div class="stat">
+          <div class="stat-label">Time</div>
+          <div class="stat-value" id="statTime">00:00:00</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Download</div>
+          <div class="stat-value" id="statDown">0.0 Mb/s</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Upload</div>
+          <div class="stat-value" id="statUp">0.0 Mb/s</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Ping</div>
+          <div class="stat-value" id="statPing">— ms</div>
+        </div>
+      </div>
+      <div class="info-sub">New IP: <span id="statNewIp">—</span></div>
+    </div>
+
+    <button class="connect-btn" id="connectBtn">CONNECT</button>
+
+    <button class="popup-open-full" id="openFullBtn">Open full app ⤢</button>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

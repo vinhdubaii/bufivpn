@@ -1,0 +1,78 @@
+{
+  "build": {
+    "beforeBuildCommand": "",
+    "beforeDevCommand": "",
+    "devPath": "../src",
+    "distDir": "../src",
+    "withGlobalTauri": true
+  },
+  "package": {
+    "productName": "BUFI VPN",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": false,
+      "shell": {
+        "open": false
+      },
+      "window": {
+        "all": true
+      }
+    },
+    "systemTray": {
+      "iconPath": "icons/icon.png",
+      "iconAsTemplate": false
+    },
+    "bundle": {
+      "active": true,
+      "targets": ["msi", "nsis"],
+      "identifier": "com.bufi.vpn",
+      "publisher": "BUFI",
+      "icon": ["icons/icon.ico"],
+      "resources": [],
+      "windows": {
+        "nsis": {
+          "installMode": "currentUser",
+          "languages": ["English"],
+          "displayLanguageSelector": false
+        },
+        "wix": {
+          "language": "en-US"
+        }
+      }
+    },
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://ipapi.co https://ipwho.is; style-src 'self' 'unsafe-inline'; script-src 'self'"
+    },
+    "windows": [
+      {
+        "label": "main",
+        "title": "BUFI VPN",
+        "url": "index.html",
+        "width": 960,
+        "height": 680,
+        "minWidth": 820,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true,
+        "visible": true
+      },
+      {
+        "label": "tray-popup",
+        "title": "BUFI VPN",
+        "url": "popup.html",
+        "width": 300,
+        "height": 400,
+        "resizable": false,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "visible": false,
+        "center": false
+      }
+    ]
+  }
+}

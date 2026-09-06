@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<title>BUFI VPN</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="app">
+
+    <!-- Top status bar -->
+    <header class="topbar" data-tauri-drag-region>
+      <div class="brand">
+        <img class="brand-logo" src="assets/logo.png" alt="BUFI" onerror="this.style.display='none'" />
+        <span class="brand-name">BUFI VPN</span>
+      </div>
+      <div class="status-pill" id="statusPill">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">NOT CONNECTED</span>
+      </div>
+    </header>
+
+    <!-- Map -->
+    <div class="map-wrap" id="mapWrap">
+      <svg class="world-map" id="worldMap" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid slice">
+        <g id="mapViewport">
+          <rect x="-2000" y="-2000" width="6000" height="6000" fill="transparent" />
+          <g id="mapCountries"></g>
+          <g id="mapPins"></g>
+        </g>
+      </svg>
+
+      <!-- Zoom controls -->
+      <div class="map-zoom-controls">
+        <button id="zoomInBtn" title="Zoom in">+</button>
+        <button id="zoomOutBtn" title="Zoom out">−</button>
+        <button id="zoomResetBtn" title="Recenter">⟲</button>
+      </div>
+
+      <!-- Current location card -->
+      <div class="info-card location-card" id="locationCard">
+        <div class="info-label">Current location</div>
+        <div class="info-main" id="myLocationText">Detecting...</div>
+        <div class="info-sub" id="myIpText">IP: —</div>
+      </div>
+
+      <!-- Connected card -->
+      <div class="info-card connected-card hidden" id="connectedCard">
+        <div class="info-label">Connected to</div>
+        <div class="info-main" id="connServerName">—</div>
+        <div class="stats-grid">
+          <div class="stat">
+            <div class="stat-label">Time</div>
+            <div class="stat-value" id="statTime">00:00:00</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Download</div>
+            <div class="stat-value" id="statDown">0.0 Mb/s</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Upload</div>
+            <div class="stat-value" id="statUp">0.0 Mb/s</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Ping</div>
+            <div class="stat-value" id="statPing">— ms</div>
+          </div>
+        </div>
+        <div class="info-sub">New IP: <span id="statNewIp">—</span></div>
+      </div>
+    </div>
+
+    <!-- Bottom control panel -->
+    <footer class="panel">
+      <button class="server-select-btn" id="openListBtn">
+        <span class="flag" id="selectedFlag">🌍</span>
+        <span class="server-select-text" id="selectedServerText">Select server</span>
+        <span class="chevron">▾</span>
+      </button>
+
+      <button class="connect-btn" id="connectBtn">CONNECT</button>
+    </footer>
+  </div>
+
+  <!-- Server list (slide-up) -->
+  <div class="server-list-overlay hidden" id="serverListOverlay">
+    <div class="server-list-panel">
+      <div class="server-list-header">
+        <span>Select server</span>
+        <button class="close-btn" id="closeListBtn">✕</button>
+      </div>
+      <div class="region-tabs" id="regionTabs"></div>
+      <div class="server-items" id="serverItems"></div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="assets/world-map-paths.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
