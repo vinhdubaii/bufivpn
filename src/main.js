@@ -77,6 +77,11 @@ function setViewportTransition(ms) {
   const t = ms > 0 ? `transform ${ms}ms cubic-bezier(.4,0,.2,1)` : "none";
   mapViewport.style.transition = t;
   pinsViewport.style.transition = t;
+  // statusPin compensates zoom with its own transform (see renderPin), so it must
+  // ease in lockstep with pinsViewport/mapViewport — otherwise it snaps to its new
+  // scaled position instantly while the parent is still easing, making it look
+  // like it flies in from the edge on every zoom/scroll.
+  statusPin.style.transition = t;
 }
 
 function applyView() {
@@ -194,6 +199,12 @@ function easeInOutQuad(t) {
 }
 
 function animatePin(from, to, durationMs, onDone) {
+  // This animation drives statusPin's transform manually every frame via rAF.
+  // If a CSS transition is still active on it (left over from a prior zoom/pan),
+  // the two animation systems fight each other and the flight looks laggy/jerky.
+  // Disable it here; setViewportTransition() will re-enable it for the next
+  // zoom/pan interaction.
+  statusPin.style.transition = "none";
   const start = performance.now();
   function frame(now) {
     const t = Math.min(1, (now - start) / durationMs);
